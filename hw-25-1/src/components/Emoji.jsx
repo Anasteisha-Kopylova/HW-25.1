@@ -2,7 +2,7 @@ import React from "react";
 
 class Emoji extends React.Component {
   render() {
-    const { SvgIcon, votes, onClick } = this.props;
+    const { svgIcon: SvgIcon, votes, onClick } = this.props;
     return (
       <div
         className="card text-center p-3 shadow-sm card-emoji"

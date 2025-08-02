@@ -13,42 +13,34 @@ class App extends React.Component {
     super(props);
     this.state = {
       emojis: [
-        { id: 1, SvgIcon: Icon1, votes: 0 },
-        { id: 2, SvgIcon: Icon2, votes: 0 },
-        { id: 3, SvgIcon: Icon3, votes: 0 },
+        { id: 1, svgIcon: Icon1, votes: 0 },
+        { id: 2, svgIcon: Icon2, votes: 0 },
+        { id: 3, svgIcon: Icon3, votes: 0 },
       ],
       winningEmoji: null,
     };
   }
 
   componentDidMount() {
-    try {
-      const storedVotes = localStorage.getItem("emojiVotes");
-      if (storedVotes) {
-        const parsedVotes = JSON.parse(storedVotes);
-        this.setState((prevState) => ({
-          emojis: prevState.emojis.map((emoji) => ({
-            ...emoji,
-            votes: parsedVotes[emoji.id] || 0,
-          })),
-        }));
-      }
-    } catch (error) {
-      console.error("Помилка завантаження з localStorage:", error);
+    const storedVotes = localStorage.getItem("emojiVotes");
+    if (storedVotes) {
+      const parsedVotes = JSON.parse(storedVotes);
+      this.setState((prevState) => ({
+        emojis: prevState.emojis.map((emoji) => ({
+          ...emoji,
+          votes: parsedVotes[emoji.id] || 0,
+        })),
+      }));
     }
   }
 
   componentDidUpdate(prevProps, prevState) {
     if (prevState.emojis !== this.state.emojis) {
-      try {
-        const votesToStore = this.state.emojis.reduce((acc, emoji) => {
-          acc[emoji.id] = emoji.votes;
-          return acc;
-        }, {});
-        localStorage.setItem("emojiVotes", JSON.stringify(votesToStore));
-      } catch (error) {
-        console.error("Помилка зберігання даних в localStorage:", error);
-      }
+      const votesToStore = this.state.emojis.reduce((acc, emoji) => {
+        acc[emoji.id] = emoji.votes;
+        return acc;
+      }, {});
+      localStorage.setItem("emojiVotes", JSON.stringify(votesToStore));
     }
   }
 
@@ -103,7 +95,7 @@ class App extends React.Component {
                   key={emoji.id}
                 >
                   <Emoji
-                    SvgIcon={emoji.SvgIcon}
+                    svgIcon={emoji.svgIcon}
                     votes={emoji.votes}
                     onClick={() => this.handleEmojiClick(emoji.id)}
                   />
@@ -123,11 +115,11 @@ class App extends React.Component {
               >
                 {winningEmoji.symbol === null ? (
                   <p className="display-6 mb-0">{winningEmoji.text}</p>
-                ) : winningEmoji.SvgIcon ? (
+                ) : winningEmoji.svgIcon ? (
                   <>
                     <h3 className="alert-heading mb-2">Переможець:</h3>
                     <div style={{ margin: "0 auto" }}>
-                      <winningEmoji.SvgIcon />
+                      <winningEmoji.svgIcon />
                     </div>
                     <p className="lead mt-2">
                       з {winningEmoji.votes} голосами!
