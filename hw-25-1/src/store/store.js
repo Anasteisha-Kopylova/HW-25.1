@@ -1,28 +1,31 @@
 import { configureStore, createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-  emojiList: [],
+  emojiList: [
+    { id: 1, name: "smile", votes: 0 },
+    { id: 2, name: "laughtears", votes: 0 },
+    { id: 3, name: "sad", votes: 0 },
+  ],
 };
 
 const emojiSlice = createSlice({
   name: "emoji",
   initialState,
   reducers: {
-    setEmojis(state, action) {
-      state.emojiList = action.payload;
-    },
-    incrementVote(state, action) {
-      const id = action.payload;
-      const emoji = state.emojiList.find((e) => e.id === id);
+    incrementVote: (state, action) => {
+      const emoji = state.emojiList.find((e) => e.id === action.payload);
       if (emoji) emoji.votes += 1;
     },
-    clearVotes(state) {
+    clearVotes: (state) => {
       state.emojiList = state.emojiList.map((e) => ({ ...e, votes: 0 }));
+    },
+    setVotes: (state, action) => {
+      state.emojiList = action.payload;
     },
   },
 });
 
-export const { setEmojis, incrementVote, clearVotes } = emojiSlice.actions;
+export const { incrementVote, clearVotes, setVotes } = emojiSlice.actions;
 
 export const store = configureStore({
   reducer: emojiSlice.reducer,

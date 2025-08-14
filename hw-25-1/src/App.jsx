@@ -1,48 +1,46 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { incrementVote, clearVotes, setVotes } from "./store/store";
 import Header from "./components/Header";
 import Emoji from "./components/Emoji";
 import ShowResultsButton from "./components/ShowResButton";
 import ClearResButton from "./components/ClearResButton";
-import "./index.css";
 import { ReactComponent as Icon1 } from "./assets/smile.svg";
 import { ReactComponent as Icon2 } from "./assets/laughtears.svg";
 import { ReactComponent as Icon3 } from "./assets/sad.svg";
-import { setEmojis, incrementVote, clearVotes } from "./store/store";
+import "./index.css";
+
+const iconMap = {
+  smile: Icon1,
+  laughtears: Icon2,
+  sad: Icon3,
+};
+
+const initialEmojis = [
+  { id: 1, name: "smile", votes: 0 },
+  { id: 2, name: "laughtears", votes: 0 },
+  { id: 3, name: "sad", votes: 0 },
+];
 
 const App = () => {
   const dispatch = useDispatch();
   const emojiList = useSelector((state) => state.emojiList);
   const [winner, setWinner] = useState(null);
-  const [isVotesLoaded, setIsVotesLoaded] = useState(false);
 
   useEffect(() => {
-    const initialEmojis = [
-      { id: 1, svgIcon: Icon1, votes: 0 },
-      { id: 2, svgIcon: Icon2, votes: 0 },
-      { id: 3, svgIcon: Icon3, votes: 0 },
-    ];
-
     const stored = localStorage.getItem("emojiVotes");
     if (stored) {
-      const parsed = JSON.parse(stored);
-      initialEmojis.forEach((emoji) => {
-        emoji.votes = parsed[emoji.id] || 0;
-      });
+      dispatch(setVotes(JSON.parse(stored)));
+    } else {
+      dispatch(setVotes(initialEmojis));
     }
-
-    dispatch(setEmojis(initialEmojis));
-    setIsVotesLoaded(true);
   }, [dispatch]);
 
   useEffect(() => {
-    if (!isVotesLoaded) return;
-    const votes = emojiList.reduce((acc, emoji) => {
-      acc[emoji.id] = emoji.votes;
-      return acc;
-    }, {});
-    localStorage.setItem("emojiVotes", JSON.stringify(votes));
-  }, [emojiList, isVotesLoaded]);
+    if (emojiList) {
+      localStorage.setItem("emojiVotes", JSON.stringify(emojiList));
+    }
+  }, [emojiList]);
 
   const handleClick = (id) => {
     dispatch(incrementVote(id));
@@ -50,23 +48,22 @@ const App = () => {
   };
 
   const showResults = () => {
-    const max = Math.max(...emojiList.map((emoji) => emoji.votes));
-    const top = emojiList.filter((emoji) => emoji.votes === max && max > 0);
+    if (!emojiList) return;
+    const maxVotes = Math.max(...emojiList.map((e) => e.votes));
+    const topEmojis = emojiList.filter((e) => e.votes === maxVotes && maxVotes > 0);
 
-    if (max === 0) {
-      setWinner({ svgIcon: null, text: "Не було проголосовано" });
-    } else if (top.length === 1) {
-      setWinner(top[0]);
-    } else {
-      setWinner({ svgIcon: null, text: "Нічия!" });
-    }
+    if (maxVotes === 0) setWinner({ text: "Не було проголосовано" });
+    else if (topEmojis.length === 1) setWinner(topEmojis[0]);
+    else setWinner({ text: "Нічия!" });
   };
 
   const clearVotesHandler = () => {
-    localStorage.removeItem("emojiVotes");
     dispatch(clearVotes());
+    localStorage.removeItem("emojiVotes");
     setWinner(null);
   };
+
+  if (!emojiList) return null;
 
   return (
     <div className="container d-flex justify-content-center align-items-center min-vh-100 py-4">
@@ -75,34 +72,37 @@ const App = () => {
         <main className="card-body p-4">
           <h2 className="text-center mb-4">Клікніть на улюблений емодзі</h2>
           <div className="row row-cols-2 row-cols-sm-3 row-cols-md-4 g-3 mb-4 justify-content-center">
-            {emojiList.map((emoji) => (
-              <div className="col d-flex justify-content-center" key={emoji.id}>
-                <Emoji
-                  svgIcon={emoji.svgIcon}
-                  votes={emoji.votes}
-                  onClick={() => handleClick(emoji.id)}
-                />
-              </div>
-            ))}
+            {emojiList.map((emoji) => {
+              const Icon = iconMap[emoji.name];
+              return (
+                <div className="col d-flex justify-content-center" key={emoji.id}>
+                  <Emoji
+                    svgIcon={Icon}
+                    votes={emoji.votes}
+                    onClick={() => handleClick(emoji.id)}
+                  />
+                </div>
+              );
+            })}
           </div>
+
           <div className="d-flex flex-column flex-sm-row justify-content-center align-items-center gap-3">
             <ShowResultsButton onShow={showResults} />
             <ClearResButton onClear={clearVotesHandler} />
           </div>
+
           {winner && (
             <div className="alert alert-success text-center mt-4 border border-success" role="alert">
-              {winner.svgIcon === null ? (
-                <p className="display-6 mb-0">{winner.text}</p>
-              ) : winner.svgIcon ? (
+              {winner.name ? (
                 <>
                   <h3 className="alert-heading mb-2">Переможець:</h3>
                   <div style={{ margin: "0 auto" }}>
-                    <winner.svgIcon />
+                    {React.createElement(iconMap[winner.name])}
                   </div>
                   <p className="lead mt-2">з {winner.votes} голосами!</p>
                 </>
               ) : (
-                <p className="display-6 mb-0">{winner.text || "Нічия!"}</p>
+                <p className="display-6 mb-0">{winner.text}</p>
               )}
             </div>
           )}
