@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { incrementVote, clearVotes, setVotes } from "./store/store";
+import { incrementVote, clearVotes, setVotes } from "./store/emojiSlice";
 import Header from "./components/Header";
 import Emoji from "./components/Emoji";
 import ShowResultsButton from "./components/ShowResButton";
@@ -24,7 +24,7 @@ const initialEmojis = [
 
 const App = () => {
   const dispatch = useDispatch();
-  const emojiList = useSelector((state) => state.emojiList);
+  const emojiList = useSelector((state) => state.emoji.emojiList);
   const [winner, setWinner] = useState(null);
 
   useEffect(() => {
@@ -50,7 +50,9 @@ const App = () => {
   const showResults = () => {
     if (!emojiList) return;
     const maxVotes = Math.max(...emojiList.map((e) => e.votes));
-    const topEmojis = emojiList.filter((e) => e.votes === maxVotes && maxVotes > 0);
+    const topEmojis = emojiList.filter(
+      (e) => e.votes === maxVotes && maxVotes > 0
+    );
 
     if (maxVotes === 0) setWinner({ text: "Не було проголосовано" });
     else if (topEmojis.length === 1) setWinner(topEmojis[0]);
@@ -75,7 +77,10 @@ const App = () => {
             {emojiList.map((emoji) => {
               const Icon = iconMap[emoji.name];
               return (
-                <div className="col d-flex justify-content-center" key={emoji.id}>
+                <div
+                  className="col d-flex justify-content-center"
+                  key={emoji.id}
+                >
                   <Emoji
                     svgIcon={Icon}
                     votes={emoji.votes}
@@ -92,7 +97,10 @@ const App = () => {
           </div>
 
           {winner && (
-            <div className="alert alert-success text-center mt-4 border border-success" role="alert">
+            <div
+              className="alert alert-success text-center mt-4 border border-success"
+              role="alert"
+            >
               {winner.name ? (
                 <>
                   <h3 className="alert-heading mb-2">Переможець:</h3>
